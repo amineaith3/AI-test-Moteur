@@ -20,7 +20,7 @@ plt.rcParams['figure.figsize'] = (10, 6)
 # %%
 # Load data (ensure PART A scraper has finished running)
 try:
-    df = pd.read_csv("moteur_ma_scraped_data.csv")
+    df = pd.read_csv("../data/moteur_ma_cleaned_500pages.csv")
     print(f"Dataset loaded successfully with {df.shape[0]} rows and {df.shape[1]} columns.")
 except FileNotFoundError:
     print("Error: The CSV file was not found. Please wait for Part A to finish scraping.")

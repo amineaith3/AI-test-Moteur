@@ -100,7 +100,7 @@ if __name__ == "__main__":
         print(f"\\nSuccessfully scraped {len(df)} new car versions!")
         print(df.head())
         
-        filename = "moteur_ma_neuf_data.csv"
+        filename = "../data/moteur_ma_neuf_data.csv"
         df.to_csv(filename, index=False, encoding='utf-8')
         print(f"\\nData saved to {filename}")
     else:

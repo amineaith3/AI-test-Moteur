@@ -107,7 +107,7 @@ if __name__ == "__main__":
         print(df.head())
         
         # Save to CSV for Part B
-        filename = "moteur_ma_scraped_data.csv"
+        filename = "../data/moteur_ma_scraped_data.csv"
         df.to_csv(filename, index=False, encoding='utf-8')
         print(f"\\nData saved to {filename}")
     else:
