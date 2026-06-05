@@ -1,4 +1,4 @@
-\documentclass[12pt]{article}
+\documentclass[12pt]{report}
 \usepackage[utf8]{inputenc}
 \usepackage{geometry}
 \geometry{a4paper, margin=1in}
@@ -6,92 +6,207 @@
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{booktabs}
-\usepackage{tabularx}
 \usepackage{float}
 \usepackage{setspace}
-\usepackage{tocloft}
+\usepackage{listings}
+\usepackage{xcolor}
 
-\title{\Huge\textbf{Data Science in Emerging Markets: \\ A Predictive Analysis of Second-Hand Car Prices in Morocco}}
-\author{\Large Amine}
-\date{\large June 2026}
+% Code snippet styling
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
 
 \begin{document}
 
-\maketitle
+% --- TITLE PAGE ---
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    
+    \Huge
+    \textbf{Predictive Analytics in Emerging Markets}
+    
+    \vspace{0.5cm}
+    \LARGE
+    End-to-End Machine Learning for Second-Hand Car Prices in Morocco
+    
+    \vspace{2cm}
+    
+    \large
+    \textbf{Prepared by Group 1:} \\
+    \vspace{0.2cm}
+    \normalsize
+    1. Amine A. \\
+    2. [Group Member 2] \\
+    3. [Group Member 3] \\
+    4. [Group Member 4] \\
+    5. [Group Member 5] \\
+    6. [Group Member 6] \\
+    
+    \vspace{2cm}
+    
+    \large
+    \textbf{Supervised by:} \\
+    Professor [Professor's Name]
+    
+    \vfill
+    
+    \large
+    \textbf{University / Institution Name} \\
+    \vspace{0.2cm}
+    June 2026
+\end{titlepage}
+
+\onehalfspacing
 \tableofcontents
 \newpage
 
-\section{Introduction and Executive Summary}
-\onehalfspacing
-The Moroccan second-hand car market is highly volatile, driven by physical negotiations, regional availability, and undocumented devaluation metrics. The goal of this project was to establish an absolute mathematical baseline for pricing used vehicles. By extracting over 15,000 real listings from \texttt{moteur.ma}, we designed an Artificial Intelligence pipeline capable of predicting fair market values. 
+% --- CHAPTER 1 ---
+\chapter{Web Scraping and Data Collection}
 
-This report outlines the end-to-end Data Science life cycle, starting from raw web scraping, moving through Exploratory Data Analysis (EDA), and detailing an intense 5-iteration machine learning evolution. Our final model—a Hierarchical Random Forest architecture—achieved an \textbf{87.3\% accuracy} rate within the economy sector, identifying prices with a margin of error of just 16,000 MAD.
+\section{The Evolution of the Scraper}
+To mathematically evaluate the second-hand car market in Morocco, we needed real-world data. We initially built a simple Python scraper using \texttt{BeautifulSoup} and \texttt{Requests} to extract listings from \texttt{moteur.ma}. 
 
-\section{Data Acquisition (Step A)}
-Data acquisition was performed using a custom Python web scraper utilizing \texttt{BeautifulSoup} and \texttt{Requests}. The script parsed the HTML Document Object Model (DOM) of \texttt{moteur.ma}, paginating through 500 pages to bypass platform limitations. 
+Our first iteration parsed merely 10 to 50 pages. However, to deploy a highly robust Machine Learning model, we required volume. We decided to drastically expand the pagination parameter. We initially considered scraping 1,200 pages, but to avoid hardware overheating and server blocks ("burning the laptop"), we strategically settled on \textbf{500 pages}. This optimal limit yielded over \textbf{15,000 distinct car listings}.
 
-Variables extracted included:
-\begin{itemize}
-    \item Title (Brand and Model)
-    \item Listed Price
-    \item Location (City)
-    \item Manufacture Year
-    \item Transmission (Manual/Automatic)
-    \item Fuel Type (Diesel, Petrol, Hybrid, Electric)
-    \item Mileage (Kilometers)
-\end{itemize}
+\section{Scraping Methodology}
+Below is a core snippet demonstrating how we bypassed constraints and parsed the HTML Document Object Model (DOM) to extract features like Price, Year, and Mileage:
 
-\section{Exploratory Data Analysis (Step B)}
-Before feeding data into mathematical models, a deep Exploratory Data Analysis was conducted using \texttt{Seaborn} and \texttt{Matplotlib}. 
+\begin{lstlisting}[language=Python, caption=Core Scraper Logic]
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
 
-\subsection{Depreciation Curvature}
-We established that the depreciation curve of a vehicle in Morocco is non-linear. The most aggressive value drops occur between 0 and 150,000 km. After the 150,000 km mark, the depreciation slope flattens, implying that Moroccan buyers heavily discount high mileage up to a point, after which the vehicle reaches a "floor" utility value.
+data = []
+for page in range(1, 501): # Capped at 500 pages
+    url = f"https://www.moteur.ma/fr/voiture/achat-voiture-occasion/recherche/?page={page}"
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    
+    for car in soup.find_all('div', class_='row-item'):
+        title = car.find('h3').text.strip()
+        price = car.find('div', class_='price').text.strip()
+        data.append({'Title': title, 'Price': price})
+\end{lstlisting}
 
-\subsection{Categorical Premiums}
-Our EDA revealed massive categorical premiums:
-\begin{itemize}
-    \item \textbf{Transmission:} Automatic vehicles retain substantially more value over 10 years compared to Manual vehicles.
-    \item \textbf{Fuel Economy:} Diesel engines maintain dominance, but Hybrid vehicles show the highest initial retention value.
-\end{itemize}
+\newpage
 
-\section{Preprocessing and Iterative Modeling (Steps C, D, E)}
+% --- CHAPTER 2 ---
+\chapter{Exploratory Data Analysis (EDA)}
 
-The core of this project lies in the evolution of our Machine Learning models. We utilized \texttt{Scikit-Learn} to evaluate multiple regressors, including Linear Regression, Ridge Regression, Gradient Boosting, and Random Forest. 
+Before building any mathematical models, we generated descriptive statistics and visual plots to understand how Moroccan buyers value cars.
 
-The Mean Absolute Error (MAE) formula used for evaluation is defined as:
-\begin{equation}
-\text{MAE} = \frac{1}{n}\sum_{i=1}^{n} |y_i - \hat{y}_i|
-\end{equation}
+\section{Price Distribution}
+The majority of the Moroccan car market operates heavily within the budget constraint of under 300,000 MAD. However, extreme outliers exist, stretching up to 1,500,000 MAD for luxury vehicles (e.g., Range Rover, Mercedes-Benz G-Class).
 
-\subsection{Version 1: The Base Pipeline}
-In our initial approach, categorical variables were converted using One-Hot Encoding. However, we failed to extract the specific \texttt{CarModel}, only feeding the \texttt{Brand} (e.g., Mercedes) to the AI. 
-\textbf{Result:} The model scored a devastating MAE of 52,000 MAD, unable to distinguish a budget A-Class from a luxury G-Class.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/StepB_1_Price_Distribution.png}
+    \caption{Distribution of Car Prices (MAD)}
+\end{figure}
 
-\subsection{Version 2: Sub-Feature Extraction}
-We implemented regex to extract the specific \texttt{CarModel} and One-Hot Encoded the top 100 models. 
-\textbf{Result:} Accuracy jumped to 70\%, dropping the error to 39,000 MAD.
+\section{The Depreciation Curve (Mileage)}
+Our scripts visualized the explicit relationship between a car's odometer and its market value. The devaluation curve is steepest between $0$ and $150,000$ km. After the $150,000$ km threshold, the depreciation rate flattens, indicating that older vehicles eventually hit a mathematical "utility floor" where mileage ceases to destroy value.
 
-\subsection{Version 3: Target Encoding}
-One-Hot Encoding created a massive 138-column sparse matrix, treating locations like "Casablanca" and "El Jadida" equally as Boolean switches. We implemented \textbf{Target Encoding}, which mathematically replaces a category with the mean of the target variable for that category.
-\textbf{Result:} Dimensionality dropped to 8 columns. Accuracy surged to 76.6\%, and the error dropped to 35,000 MAD.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/StepB_2_Price_vs_Mileage.png}
+    \caption{Scatter Plot: Price Depreciation vs. Mileage}
+\end{figure}
 
-\subsection{Version 4: Economy vs Luxury Isolation}
-Statistical descriptive analysis revealed the median car price was 177,000 MAD, but outliers reached 1,500,000 MAD. The model was over-compensating for luxury outliers. We restricted the dataset to "Economy Cars" ($\le$ 300,000 MAD).
-\textbf{Result:} The Random Forest Accuracy exploded to 87.3\%, reducing the MAE to an elite 16,390 MAD.
+\section{Brand and Categorical Dominance}
+We discovered that Automatic transmissions command a heavy premium over Manual configurations. Additionally, Diesel is the absolute dominant fuel type in Morocco, though Hybrid vehicles show the highest initial retention value.
 
-\subsection{Version 5: Hierarchical Router Architecture}
-To deploy a model capable of predicting \textit{any} car without manually knowing its tier, we designed a 3-Stage Hierarchical AI. We also implemented \textbf{Feature Crosses}, fusing Brand and Model into a single unique identifier (e.g., \textit{Mercedes-Benz Classe CLA}).
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/StepB_4_Price_vs_Categoricals.png}
+    \caption{Boxplots of Price variations across Transmission and Fuel Types}
+\end{figure}
 
-\subsubsection{Stage 1: The Classifier}
-A Random Forest Classifier was trained to predict whether a car belongs to the Economy ($y \le 300k$) or Luxury ($y > 300k$) tier based on its features.
+\newpage
 
-\subsubsection{Stage 2 \& 3: Dedicated Regressors}
-Once classified, the input is routed to a dedicated Regressor algorithm optimized for that specific price domain.
+% --- CHAPTER 3 ---
+\chapter{Machine Learning Iterations (V1 - V5)}
 
-\section{Deployment (Step F)}
-The final V5 Hierarchical Model was serialized via \texttt{joblib} and integrated into a responsive \textbf{Streamlit Web Application}. The system dynamically feeds user inputs into the Classifier, determines the market tier, and executes the appropriate mathematical regression, displaying the fair market price instantly.
+The true engineering challenge of this project lay in optimizing the predictive algorithm. Over 5 iterations, we dropped our Error Margin from 52,000 MAD down to 16,000 MAD.
+
+\section{Version 1: The Generic Baseline}
+\textbf{The Goal:} Establish a baseline mathematical prediction using basic features. \\
+\textbf{What we did:} We used One-Hot Encoding to convert categories into booleans and applied a standard Random Forest Regressor. However, we only extracted the parent \texttt{Brand} from the title (e.g., "Mercedes-Benz"). \\
+\textbf{The Result:} The model produced a devastating Mean Absolute Error (MAE) of \textbf{52,000 MAD}. It mathematically failed because it could not distinguish between a 300,000 MAD Mercedes A-Class and a 1,500,000 MAD Mercedes G-Class. 
+
+\section{Version 2: Sub-Feature Extraction}
+\textbf{The Goal:} Fix the 52k error by introducing model specificity. \\
+\textbf{What we did:} We applied complex string manipulation to extract the specific \texttt{CarModel} from the string (e.g., isolating "Classe CLA"). We injected the top 100 Car Models into the matrix.
+\begin{lstlisting}[language=Python, caption=Extracting the exact Car Model]
+df['Brand'] = df['Title'].apply(lambda x: str(x).split()[0].title())
+df['CarModel'] = df['Title'].apply(lambda x: " ".join(str(x).split()[1:]).title())
+\end{lstlisting}
+\textbf{The Result:} Accuracy jumped to \textbf{70.0\%}, shrinking the error down to \textbf{39,000 MAD}.
+
+\section{Version 3: Target Encoding}
+\textbf{The Goal:} Remove the inefficient Boolean matrix. \\
+\textbf{What we did:} The boolean "True/False" approach treated locations like "Casablanca" and "El Jadida" equally, failing to acknowledge that major northern cities command higher market baselines. We ripped out One-Hot Encoding and deployed \textbf{Target Encoding}, which mathematically replaces a city name with the \textit{average price of all cars in that city}.
+\textbf{The Result:} Dimensionality dropped from 138 columns down to 8. Accuracy surged to \textbf{76.6\%}, and the error dropped to \textbf{35,000 MAD}.
+
+\section{Version 4: Economy vs. Luxury Split}
+\textbf{The Goal:} Protect budget car evaluations from millionaire outliers. \\
+\textbf{What we did:} We noticed the average car was 177,000 MAD, yet 35,000 MAD was a 20\% error margin. The error was being skewed by the AI trying to predict 1.5 million MAD Range Rovers. We isolated the dataset, training a model exclusively on "Economy" cars ($\le$ 300,000 MAD). \\
+\textbf{The Result:} Accuracy exploded to \textbf{87.3\%}, dropping the error margin for average Moroccan cars down to \textbf{16,390 MAD}.
+
+\section{Version 5 (Final): The Hierarchical AI Router}
+\textbf{The Goal:} Build a single, unified pipeline capable of predicting \textit{any} car automatically. \\
+\textbf{What we did:} Since users do not know if their car is Economy or Luxury until they see the price, we built a \textbf{3-Stage Hierarchical Model}. Furthermore, we combined Brand and Model into a \textit{Feature Cross} to create unique identities (e.g., "Mercedes-Benz Classe CLA").
+
+\begin{enumerate}
+    \item \textbf{Stage 1 (Classifier):} A Random Forest Classification network that predicts if a car belongs to the Economy or Luxury tier. (Achieved \textbf{93.0\% Accuracy}).
+    \item \textbf{Stage 2 (Economy Pipeline):} If classified as Economy, it routes to a dedicated Random Forest Regressor (Error: $\pm$ 18,264 MAD).
+    \item \textbf{Stage 3 (Luxury Pipeline):} If classified as Luxury, it routes to a separate Regressor (Error: $\pm$ 84,009 MAD).
+\end{enumerate}
+
+\newpage
+
+% --- CHAPTER 4 ---
+\chapter{Web Application Deployment}
+
+\section{Dashboard Engineering}
+To democratize our mathematical models, we exported the 3-Stage V5 Hierarchical AI pipelines via \texttt{joblib}. We built a responsive graphical user interface using \textbf{Streamlit}.
+
+The application allows users to manipulate sliders and dropdowns corresponding to our 8 feature dimensions. In the background, the application executes the Python backend, running the user's inputs through the Classifier network and subsequently into the dedicated regression algorithm.
+
+\section{Live Deployment Link}
+The application is currently hosted and live for public usage. You can interact with the pricing engine via the following URL:
+
+\vspace{0.5cm}
+\noindent
+\Large
+\textbf{Live Application:} \\
+\href{https://sdbdia-group1.streamlit.app/}{https://sdbdia-group1.streamlit.app/}
+\normalsize
+\vspace{0.5cm}
 
 \section{Conclusion}
-This project successfully transformed chaotic web data into an 87.3\% accurate, fully deployed Artificial Intelligence system. By meticulously iterating through feature extraction, target encoding, and hierarchical classification, we proved that AI can bring extreme transparency to emerging second-hand vehicle markets.
+This project illustrates the absolute power of Data Science. Through iterative logic—moving from basic statistical averaging to advanced Hierarchical Routing and Feature Crosses—we successfully mapped and standardized the volatile Moroccan second-hand car market.
 
 \end{document}
