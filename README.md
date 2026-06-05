@@ -1,73 +1,150 @@
-# Moroccan Second-Hand Car Price Prediction 🚗🇲🇦
+# 🏎️ Moroccan Second-Hand Car Price Predictor
 
-This repository contains the full data science pipeline for estimating the fair price of second-hand cars in Morocco, strictly based on historical data scraped from [moteur.ma](https://www.moteur.ma).
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://sdbdia-group1.streamlit.app/)
 
-This project fulfills the requirements of the academic assignment detailed in the [Project Requirements PDF](./Practical%20project_second_hand_car_price_SDBDIA2A.pdf).
+> **Live Demo:** [https://sdbdia-group1.streamlit.app/](https://sdbdia-group1.streamlit.app/)
+
+An end-to-end Data Science pipeline for predicting second-hand car prices in Morocco, trained on 15,000+ real listings scraped from `moteur.ma`. The final deployed model achieves a **13.2% MAPE** on everyday cars.
+
+---
 
 ## 📂 Project Structure
 
-```text
+```
 car_price_project/
 │
-├── data/                                 # Contains raw and cleaned datasets
-│   ├── moteur_ma_scraped_data.csv        # Massive raw dataset (~15,000 cars)
-│   ├── moteur_ma_cleaned_500pages.csv    # Cleaned dataset without hidden prices (~13,180 cars)
-│   └── moteur_ma_neuf_data.csv           # Reference dataset of new car baseline prices
+├── scripts/                        # All pipeline logic, chronologically versioned
+│   ├── PART_A_Scraper.py           # Web scraper (BeautifulSoup + Requests)
+│   ├── PART_A_Scraper_Neuf.py      # Updated scraper with improved pagination
+│   ├── PART_B_Exploratory_Analysis.py  # EDA: statistics and distribution plots
+│   ├── Step_B_EDA.py               # EDA: deeper correlation and feature plots
+│   ├── Step_C_Preprocessing.py     # V1: Basic cleaning + One-Hot Encoding
+│   ├── Step_C_Preprocessing_v2.py  # V2: Adds CarModel extraction
+│   ├── Step_C_Preprocessing_v3.py  # V3: Target Encoding replaces boolean OHE
+│   ├── Step_C_Preprocessing_v5.py  # V5: Brand+Model Feature Cross
+│   ├── Step_D_Modeling.py          # V1: Baseline Random Forest
+│   ├── Step_D_Modeling_v2.py       # V2: CarModel-aware model
+│   ├── Step_D_Modeling_v3.py       # V3: Target Encoded model
+│   ├── Step_D_Modeling_v4_Economy.py   # V4: Economy-only model
+│   ├── Step_D_Modeling_v5_Hierarchical.py  # V5: 3-Stage Hierarchical Router (PRODUCTION)
+│   ├── Step_D_Modeling_v6_Clustering_ACP_KNN.py  # V6: ACP+KNN experiment (benchmarked)
+│   └── Step_E_Export_Model.py      # Exports the final V5 models to app/
 │
-├── images/                               # Exploratory Data Analysis (EDA) visualizations
-│   ├── plot_1_top_brands.png
-│   ├── plot_2_price_distribution.png
-│   ├── plot_3_fuel_types.png
-│   └── plot_4_avg_price_by_brand.png
+├── data/                           # Raw and processed datasets
+│   ├── moteur_ma_scraped_data.csv  # Raw 15,000+ listing dataset
+│   └── moteur_ma_preprocessed_v5.csv   # Final V5 feature-engineered dataset
 │
-├── scripts/                              # Core Python Logic
-│   ├── PART_A_Scraper.py                 # Automates scraping 500+ pages of used cars
-│   ├── PART_A_Scraper_Neuf.py            # Extracts exact prices for new car variants
-│   ├── clean_data.py                     # Cleans corrupt rows (e.g., "Appeler pour le prix")
-│   ├── PART_B_Exploratory_Analysis.py    # Jupyter-style notebook script for EDA
-│   └── plot_insights.py                  # Generates matplotlib/seaborn image outputs
+├── app/                            # Production Web Application
+│   ├── app.py                      # Streamlit UI and routing logic
+│   ├── model_classifier.pkl        # V5 Economy/Luxury Classifier (93% accuracy)
+│   ├── model_economy.pkl           # V5 Economy Regressor (MAPE: 13.2%)
+│   ├── model_luxury.pkl            # V5 Luxury Regressor (MAPE: 16.6%)
+│   └── metadata.json               # Dynamic dropdown options for the UI
 │
-├── logs/                                 # Runtime logs for the scraping engines
-│   └── scraper_output_500.log
-│
-├── requirements.txt                      # pip dependencies
-└── Practical project_second_hand_car_price_SDBDIA2A.pdf  # Project Spec
+├── images/                         # EDA plots and charts
+├── notebooks/                      # Jupytext-synced notebook copies
+├── report.tex                      # Full academic LaTeX thesis (compile to PDF)
+├── report.md                       # Markdown version of the report
+└── requirements.txt                # Python dependencies
 ```
 
-## 🚀 Execution Roadmap
+---
 
-### Part A: Data Collection (Web Scraping) ✅
-Built a custom BeautifulSoup scraper to paginate through thousands of car listings, successfully compiling a robust dataset of over 13,000 viable used cars. The raw data encompasses critical features like `Title`, `Price`, `Year`, `Mileage`, `Transmission`, `Fuel Type`, and `Location`.
+## 📖 The Full Story: From Scraping to Deployment
 
-### Part B: Exploratory Data Analysis (EDA) ✅
-Performed deep data cleaning to parse strings into integers. Generated detailed visualizations detailing how car prices decay across mileage, identifying the dominant brands (Dacia, Renault, Peugeot), and highlighting the distribution of fuel types in the Moroccan market.
+### Part A — Web Scraping
+We built a custom `BeautifulSoup` scraper to extract car listings from `moteur.ma`. Initially we were blocked by pagination and server limits. We iterated on the scraper twice (`PART_A_Scraper.py` → `PART_A_Scraper_Neuf.py`) to handle retries and bypass rate limits. We capped at **500 pages** (15,000+ listings) — we could have gone to 1,200 pages, but we didn't want to burn anyone's laptop or risk an IP block.
 
-### Part C: Data Preprocessing ✅
-Targeted numerical extraction (converting categorical variables into numerical weights via One-Hot Encoding) and handled extreme outliers. 
+**Extracted features:** `Title` (Brand + Model), `Price`, `Location`, `Year`, `Transmission`, `Fuel`, `Mileage`, `Link`
 
-**Iterative Learning (V1 vs V2):** 
-In our `v1` scripts, we only extracted the car `Brand` (e.g., Mercedes). This caused a massive Mean Absolute Error of **52,000 MAD** because the model couldn't distinguish between a 300k MAD A-Class and a 1.5M MAD G-Class! We documented this mistake, kept the V1 scripts for reference, and deployed `v2` scripts which explicitly extract and One-Hot encode the top 100 specific `CarModels` (e.g., Clio, Passat, G-Class).
+### Part B — Exploratory Data Analysis (EDA)
+Two EDA scripts (`PART_B_Exploratory_Analysis.py` and `Step_B_EDA.py`) generate a full suite of descriptive plots saved to `images/`:
+- **Price Distribution:** Most cars sit below 300k MAD, with a long luxury tail up to 1.5M MAD.
+- **Depreciation Curve:** Prices drop steeply before 150,000 km, then flatten.
+- **Categorical Premiums:** Automatics command a premium over manuals; Diesel dominates fuel types.
 
-### Part D & E: Predictive Modeling ✅
-Implemented Regression Models (Linear Regression, Ridge, Random Forest, Gradient Boosting). 
+### Step C — Preprocessing Iterations
+The preprocessing evolved across 4 major versions:
 
-**V3: Target Encoding & Feature Mathematical Mapping** 
-We realized that One-Hot Encoding (Booleans) treated regions like "Casablanca" and "Agadir" equally. To fix this, we implemented mathematical **Target Encoding**, explicitly teaching the AI regional devaluation baselines. This skyrocketed the Random Forest Accuracy to **76.6%**.
+| Version | Key Change | MAE Result |
+|---------|-----------|------------|
+| V1 (`Step_C_Preprocessing.py`) | One-Hot Encoding, Brand only | 52,000 MAD |
+| V2 (`Step_C_Preprocessing_v2.py`) | Extracted specific `CarModel` | 39,000 MAD |
+| V3 (`Step_C_Preprocessing_v3.py`) | **Target Encoding** replaces boolean OHE | 35,000 MAD |
+| V5 (`Step_C_Preprocessing_v5.py`) | **Feature Cross**: `Brand_Model` unified | Production |
 
-**V4: Economy vs Luxury Isolation** 
-Even with V3, a 35,000 MAD error on an average 150k car was too high, skewed by million-dirham outliers. We completely isolated the models into an "Economy Pipeline" (prices ≤ 300,000 MAD). 
-**Final Result**: The Random Forest scored an elite **87.3% accuracy**, predicting cars within a minimal **~16,390 MAD** margin.
+> **Why Target Encoding?** One-Hot Encoding treated "Casablanca" and "El Jadida" as equal boolean switches. Target Encoding mathematically replaced each city with the average car price in that city, teaching the AI that northern urban centers are systematically more expensive.
 
-**V5: Hierarchical Routing & Feature Crosses (Current Production Model)**
-To build a singular pipeline capable of evaluating both cheap and luxury cars seamlessly, we combined `Brand` and `Model` into a unified string (e.g., *Mercedes-Benz Classe A*) to eliminate generic pricing assumptions. We deployed a **3-Stage Hierarchical AI**:
-1. **Classifier Network**: Predicts if the car belongs to the Economy or Luxury tier (93.0% Accuracy).
-2. **Economy Regressor**: Evaluates standard cars (Error Margin: ~18,264 MAD).
-3. **Luxury Regressor**: Evaluates supercars up to 1.5M MAD (Error Margin: ~84,009 MAD).
+### Step D — Modeling Iterations
+All model evaluations used **5-Fold Cross Validation** in addition to standard train/test splits.
 
-### Part F: Web Application Deployment ✅
-Built a highly responsive AI dashboard using **Streamlit**. It dynamically routes user inputs through the V5 Classifier network to mathematically route to the dedicated regressor, outputting a live mathematical market prediction in seconds.
+| Version | Architecture | Result |
+|---------|-------------|--------|
+| V1 | Random Forest, Brand only | R² = 0.58, MAE = 52k MAD |
+| V2 | Random Forest + CarModel | R² = 0.70, MAE = 39k MAD |
+| V3 | Random Forest + Target Encoding | R² = 0.76, MAE = 35k MAD |
+| V4 | Economy-only model (≤300k MAD) | R² = 0.87, MAE = 16k MAD |
+| **V5** | **3-Stage Hierarchical Router** | **MAPE: 13.2% (Eco) / 16.6% (Lux)** |
+| V6 | K-Means + ACP (PCA) + KNN (benchmarked) | MAPE: ~24% ❌ |
 
-## 🛠️ Setup Instructions
-1. Clone the repository.
-2. Run `pip install -r requirements.txt`.
-3. To visualize the data in an interactive window, execute `scripts/PART_B_Exploratory_Analysis.py` in VS Code using the `# %%` interactive cell feature.
+#### V5: The 3-Stage Hierarchical Router (Production)
+The final architecture uses a unified `Brand_Model` feature cross (e.g., "Mercedes-Benz Classe CLA" as a single entity) and routes predictions through:
+1. **Classifier** (`model_classifier.pkl`) — Detects Economy vs. Luxury tier with **93% accuracy**
+2. **Economy Regressor** (`model_economy.pkl`) — For cars ≤ 300k MAD, **MAPE: 13.2%**
+3. **Luxury Regressor** (`model_luxury.pkl`) — For cars > 300k MAD, **MAPE: 16.6%**
+
+#### V6: The ACP-KNN Experiment (Benchmarked, Not Deployed)
+At the suggestion of an economics colleague, we tested whether **K-Means Clustering → PCA (ACP) → KNN** could outperform our Random Forest. We tried k=2, k=3 clusters and 3–4 PCA components. Result: the PCA "smeared" the pricing thresholds that KNN depends on, locking the global MAPE at **~24%** — nearly double our V5 error rate. This confirms that for tabular pricing data, tree-based ensembles (Random Forest) decisively outperform distance-based methods (KNN/PCA).
+
+### Step E — Model Export
+`Step_E_Export_Model.py` serializes the V5 pipelines using `joblib` and writes the dynamic dropdown metadata to `app/metadata.json`.
+
+### Step F — Web App Deployment
+The Streamlit app at `app/app.py` loads all three V5 `.pkl` files and routes predictions in real time. Hosted on **Streamlit Community Cloud**.
+
+> 🔗 **Live App:** [https://sdbdia-group1.streamlit.app/](https://sdbdia-group1.streamlit.app/)
+
+---
+
+## 🛠️ How to Run Locally
+
+**1. Clone the repository:**
+```bash
+git clone https://github.com/amineaith3/AI-test-Moteur.git
+cd AI-test-Moteur
+```
+
+**2. Install dependencies:**
+```bash
+pip install -r requirements.txt
+```
+
+**3. Launch the Web App:**
+```bash
+cd app
+streamlit run app.py
+```
+
+**4. Re-run the full pipeline from scratch:**
+```bash
+cd scripts
+python PART_A_Scraper.py          # Scrape fresh data
+python Step_B_EDA.py              # Generate EDA plots
+python Step_C_Preprocessing_v5.py # Preprocess with V5 features
+python Step_D_Modeling_v5_Hierarchical.py  # Train and export V5 models
+```
+
+---
+
+## 📦 Requirements
+
+```
+pandas
+numpy
+scikit-learn
+category_encoders
+joblib
+streamlit
+```
+
+Install all with: `pip install -r requirements.txt`
