@@ -6,14 +6,18 @@ import json
 # Set up page layout
 st.set_page_config(page_title="Moteur.ma Price Predictor", page_icon="🚗", layout="centered")
 
+import os
+
 # Load the trained model and metadata
 @st.cache_resource
 def load_model():
-    return joblib.load('model.pkl')
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    return joblib.load(os.path.join(base_dir, 'model.pkl'))
 
 @st.cache_data
 def load_metadata():
-    with open('metadata.json', 'r') as f:
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    with open(os.path.join(base_dir, 'metadata.json'), 'r') as f:
         return json.load(f)
 
 model = load_model()
