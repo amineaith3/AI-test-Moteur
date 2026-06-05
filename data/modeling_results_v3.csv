@@ -1,0 +1,9 @@
+Model,Strategy,R2_Score,MAE
+Linear Regression,5-Fold CV,0.5712,56656.65
+Linear Regression,Train-Val-Test (70-15-15),0.5633,57695.95
+Ridge Regression,5-Fold CV,0.5712,56656.0
+Ridge Regression,Train-Val-Test (70-15-15),0.5633,57695.25
+Random Forest,5-Fold CV,0.7482,35357.53
+Random Forest,Train-Val-Test (70-15-15),0.7666,35288.16
+Gradient Boosting,5-Fold CV,0.7286,39292.23
+Gradient Boosting,Train-Val-Test (70-15-15),0.7465,38692.61
