@@ -49,8 +49,17 @@ Targeted numerical extraction (converting categorical variables into numerical w
 In our `v1` scripts, we only extracted the car `Brand` (e.g., Mercedes). This caused a massive Mean Absolute Error of **52,000 MAD** because the model couldn't distinguish between a 300k MAD A-Class and a 1.5M MAD G-Class! We documented this mistake, kept the V1 scripts for reference, and deployed `v2` scripts which explicitly extract and One-Hot encode the top 100 specific `CarModels` (e.g., Clio, Passat, G-Class).
 
 ### Part D & E: Predictive Modeling ✅
-Implemented multiple Regression Models (Linear Regression, Ridge, Random Forest, Gradient Boosting). 
-Tested across multiple strategies: **5-Fold CV**, **80-20**, **70-30**, **60-40**, and **70-15-15 splits**.
+Implemented Regression Models (Linear Regression, Ridge, Random Forest, Gradient Boosting). 
+
+**V3: Target Encoding & Feature Mathematical Mapping** 
+We realized that One-Hot Encoding (Booleans) treated regions like "Casablanca" and "Agadir" equally. To fix this, we implemented mathematical **Target Encoding**, explicitly teaching the AI regional devaluation baselines. This skyrocketed the Random Forest Accuracy to **76.6%**.
+
+**V4: Economy vs Luxury Isolation** 
+Even with V3, a 35,000 MAD error on an average 150k car was too high, skewed by million-dirham outliers. We completely isolated the models into an "Economy Pipeline" (prices ≤ 300,000 MAD). 
+**Final Result**: The Random Forest scored an elite **87.3% accuracy**, predicting cars within a minimal **~16,390 MAD** margin.
+
+### Part F: Web Application Deployment ✅
+Built a highly responsive AI dashboard using **Streamlit**. It dynamically feeds user inputs through the V4 Pipeline (Target Encoders + Random Forest Regressor) to output a live mathematical market prediction in seconds.
 
 ## 🛠️ Setup Instructions
 1. Clone the repository.
