@@ -35,7 +35,7 @@ print("Training Classifier (Economy vs Luxury Router)...")
 classifier_pipeline = Pipeline([
     ('encoder', TargetEncoder(cols=cat_cols)),
     ('scaler', StandardScaler()),
-    ('model', RandomForestClassifier(n_estimators=100, random_state=42))
+    ('model', RandomForestClassifier(n_estimators=50, max_depth=10, random_state=42))
 ])
 X_tr, X_te, y_c_tr, y_c_te = train_test_split(X, y_class, test_size=0.2, random_state=42)
 classifier_pipeline.fit(X_tr, y_c_tr)
@@ -51,7 +51,7 @@ y_eco = df_economy['Price_MAD']
 eco_pipeline = Pipeline([
     ('encoder', TargetEncoder(cols=cat_cols)),
     ('scaler', StandardScaler()),
-    ('model', RandomForestRegressor(n_estimators=100, random_state=42))
+    ('model', RandomForestRegressor(n_estimators=50, max_depth=15, random_state=42))
 ])
 X_e_tr, X_e_te, y_e_tr, y_e_te = train_test_split(X_eco, y_eco, test_size=0.2, random_state=42)
 eco_pipeline.fit(X_e_tr, y_e_tr)
@@ -67,7 +67,7 @@ y_lux = df_luxury['Price_MAD']
 lux_pipeline = Pipeline([
     ('encoder', TargetEncoder(cols=cat_cols)),
     ('scaler', StandardScaler()),
-    ('model', RandomForestRegressor(n_estimators=100, random_state=42))
+    ('model', RandomForestRegressor(n_estimators=50, max_depth=15, random_state=42))
 ])
 X_l_tr, X_l_te, y_l_tr, y_l_te = train_test_split(X_lux, y_lux, test_size=0.2, random_state=42)
 lux_pipeline.fit(X_l_tr, y_l_tr)

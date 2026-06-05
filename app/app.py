@@ -14,7 +14,6 @@ def load_models():
     luxury = joblib.load(os.path.join(base_dir, 'model_luxury.pkl'))
     return classifier, economy, luxury
 
-@st.cache_data
 def load_metadata():
     base_dir = os.path.dirname(os.path.abspath(__file__))
     with open(os.path.join(base_dir, 'metadata.json'), 'r') as f:
