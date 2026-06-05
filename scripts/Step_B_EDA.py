@@ -23,7 +23,7 @@ plt.rcParams['figure.figsize'] = (12, 6)
 # %%
 df = pd.read_csv('../data/moteur_ma_scraped_data.csv')
 print(f"Dataset Loaded: {df.shape[0]} rows, {df.shape[1]} columns")
-display(df.head())
+print(df.head())
 
 # %% [markdown]
 # ## 2. Basic Cleaning for Visualization
@@ -63,7 +63,7 @@ plt.ylabel('Frequency')
 plt.gca().xaxis.set_major_formatter(plt.matplotlib.ticker.StrMethodFormatter('{x:,.0f}'))
 plt.tight_layout()
 plt.savefig('../images/StepB_1_Price_Distribution.png')
-plt.show()
+plt.close()
 
 # %%
 # 3.2 Price vs Mileage
@@ -77,7 +77,7 @@ plt.gca().yaxis.set_major_formatter(plt.matplotlib.ticker.StrMethodFormatter('{x
 plt.gca().xaxis.set_major_formatter(plt.matplotlib.ticker.StrMethodFormatter('{x:,.0f}'))
 plt.tight_layout()
 plt.savefig('../images/StepB_2_Price_vs_Mileage.png')
-plt.show()
+plt.close()
 
 # %%
 # 3.3 Price vs Year
@@ -90,7 +90,7 @@ plt.xticks(rotation=45)
 plt.gca().yaxis.set_major_formatter(plt.matplotlib.ticker.StrMethodFormatter('{x:,.0f}'))
 plt.tight_layout()
 plt.savefig('../images/StepB_3_Price_vs_Year.png')
-plt.show()
+plt.close()
 
 # %%
 # 3.4 Price vs Transmission & Fuel
@@ -106,7 +106,7 @@ axes[1].yaxis.set_major_formatter(plt.matplotlib.ticker.StrMethodFormatter('{x:,
 
 plt.tight_layout()
 plt.savefig('../images/StepB_4_Price_vs_Categoricals.png')
-plt.show()
+plt.close()
 
 # %%
 # 3.5 Price vs Brand
@@ -120,7 +120,7 @@ plt.xticks(rotation=45)
 plt.gca().yaxis.set_major_formatter(plt.matplotlib.ticker.StrMethodFormatter('{x:,.0f}'))
 plt.tight_layout()
 plt.savefig('../images/StepB_5_Price_vs_Brand.png')
-plt.show()
+plt.close()
 
 # %% [markdown]
 # ### EDA Conclusions:
