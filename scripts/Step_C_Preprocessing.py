@@ -90,4 +90,4 @@ print(df_encoded.head())
 # Save to CSV for Step D
 output_path = '../data/moteur_ma_preprocessed.csv'
 df_encoded.to_csv(output_path, index=False)
-print(f"\\n✅ Preprocessing complete! Data saved to {output_path}")
+print(f"\\nPreprocessing complete! Data saved to {output_path}")
