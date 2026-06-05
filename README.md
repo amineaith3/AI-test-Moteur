@@ -58,8 +58,14 @@ We realized that One-Hot Encoding (Booleans) treated regions like "Casablanca" a
 Even with V3, a 35,000 MAD error on an average 150k car was too high, skewed by million-dirham outliers. We completely isolated the models into an "Economy Pipeline" (prices ≤ 300,000 MAD). 
 **Final Result**: The Random Forest scored an elite **87.3% accuracy**, predicting cars within a minimal **~16,390 MAD** margin.
 
+**V5: Hierarchical Routing & Feature Crosses (Current Production Model)**
+To build a singular pipeline capable of evaluating both cheap and luxury cars seamlessly, we combined `Brand` and `Model` into a unified string (e.g., *Mercedes-Benz Classe A*) to eliminate generic pricing assumptions. We deployed a **3-Stage Hierarchical AI**:
+1. **Classifier Network**: Predicts if the car belongs to the Economy or Luxury tier (93.0% Accuracy).
+2. **Economy Regressor**: Evaluates standard cars (Error Margin: ~18,264 MAD).
+3. **Luxury Regressor**: Evaluates supercars up to 1.5M MAD (Error Margin: ~84,009 MAD).
+
 ### Part F: Web Application Deployment ✅
-Built a highly responsive AI dashboard using **Streamlit**. It dynamically feeds user inputs through the V4 Pipeline (Target Encoders + Random Forest Regressor) to output a live mathematical market prediction in seconds.
+Built a highly responsive AI dashboard using **Streamlit**. It dynamically routes user inputs through the V5 Classifier network to mathematically route to the dedicated regressor, outputting a live mathematical market prediction in seconds.
 
 ## 🛠️ Setup Instructions
 1. Clone the repository.
