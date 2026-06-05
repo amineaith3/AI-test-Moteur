@@ -42,11 +42,15 @@ Built a custom BeautifulSoup scraper to paginate through thousands of car listin
 ### Part B: Exploratory Data Analysis (EDA) ✅
 Performed deep data cleaning to parse strings into integers. Generated detailed visualizations detailing how car prices decay across mileage, identifying the dominant brands (Dacia, Renault, Peugeot), and highlighting the distribution of fuel types in the Moroccan market.
 
-### Part C: Data Preprocessing (Next) ⏳
-Targeting numerical extraction (converting categorical variables into numerical weights via One-Hot Encoding), handling extreme outliers, and normalizing the scales for machine learning models.
+### Part C: Data Preprocessing ✅
+Targeted numerical extraction (converting categorical variables into numerical weights via One-Hot Encoding) and handled extreme outliers. 
 
-### Part D & E: Predictive Modeling ⏳
-Implementing Regression Models (e.g., Random Forest, Gradient Boosting) to mathematically predict `Price` from historical variables, tuned via Hyperparameter grids.
+**Iterative Learning (V1 vs V2):** 
+In our `v1` scripts, we only extracted the car `Brand` (e.g., Mercedes). This caused a massive Mean Absolute Error of **52,000 MAD** because the model couldn't distinguish between a 300k MAD A-Class and a 1.5M MAD G-Class! We documented this mistake, kept the V1 scripts for reference, and deployed `v2` scripts which explicitly extract and One-Hot encode the top 100 specific `CarModels` (e.g., Clio, Passat, G-Class).
+
+### Part D & E: Predictive Modeling ✅
+Implemented multiple Regression Models (Linear Regression, Ridge, Random Forest, Gradient Boosting). 
+Tested across multiple strategies: **5-Fold CV**, **80-20**, **70-30**, **60-40**, and **70-15-15 splits**.
 
 ## 🛠️ Setup Instructions
 1. Clone the repository.
